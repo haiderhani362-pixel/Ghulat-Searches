@@ -7,7 +7,6 @@ import streamlit as st
 from PIL import Image
 import pytesseract
 from pdf2image import convert_from_bytes
-import io
 
 # Streamlit page config
 st.set_page_config(page_title="Arabic OCR Search", page_icon="📚")
@@ -34,6 +33,22 @@ if uploaded_file:
             try:
                 # PDF
                 if file_type == "application/pdf":
+                    # Convert PDF pages to images
+                    pages = convert_from_bytes(uploaded_file.read(), dpi=300)
+                    for page in pages:
+                        text += pytesseract.image_to_string(page, lang='ara')
+                # Image
+                else:
+                    image = Image.open(uploaded_file)
+                    text = pytesseract.image_to_string(image, lang='ara')
+            except Exception as e:
+                st.error(f"⚠️ Error processing file: {e}")
+            
+            # Show result
+            if keyword in text:
+                st.success(f"✅ Keyword '{keyword}' FOUND in document!")
+            else:
+                st.warning(f"❌ Keyword '{keyword}' NOT found in document.")
                     # Convert PDF pages to images
                     pages = convert_from_bytes(uploaded_file.read(), dpi=300)
                     for page in pages:
